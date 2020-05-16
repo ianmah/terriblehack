@@ -98,7 +98,7 @@ class ImageClassifier {
         setTimeout(() => { this.analyzeImage(url) }, FIVE_SECONDS_IN_MS);
         return;
       }
-      let message;
+      // let message;
       this.loadImage(url).then(
         async (img) => {
           if (!img) {
@@ -107,8 +107,20 @@ class ImageClassifier {
             return;
           }
           const predictions = await this.predict(img);
-          message = { action: 'IMAGE_CLICK_PROCESSED', url, predictions };
-          chrome.tabs.sendMessage(tabId, message);
+          // message = { action: 'IMAGE_CLICK_PROCESSED', url, predictions };
+          const query = predictions[0].className.split(",")[0];
+          console.log(query); //tiger,%20Panthera%20tigris
+          fetch(`https://www.bing.com/images/search?q=${query}`)
+            .then(response => response.text())
+            .then(html => {
+              console.log('data got')
+              console.log(html)
+              const urlRegex = /https:\/\/[-a-z0-9+&@#\/%=~_|$?!:,.]*\jpg/
+              const imageUrl = urlRegex.exec(html)[0];
+              console.log(imageUrl)
+              const message = { action: 'IMAGE_CLICK_PROCESSED', url, imageUrl };
+              chrome.tabs.sendMessage(tabId, message);
+            })
         },
         (reason) => {
           console.error(`Failed to analyze: ${reason}`);
@@ -208,3 +220,40 @@ class ImageClassifier {
 }
 
 const imageClassifier = new ImageClassifier();
+
+
+// async function fetchAsync(searchTerm) {
+//   const query = encodeURI(searchTerm);
+//   console.log(query); //tiger,%20Panthera%20tigris
+//   fetch(`https://www.bing.com/images/search?q=${query}`)
+//     .then(response => response.text())
+//     .then(data => {
+//       console.log('data got')
+//       console.log(data)
+//       return data
+//     })
+//  }
+  
+//  // HANSEL CODE
+//  function searchPageForImage(string) {
+//    const url = /https:\/\/[-a-z0-9+&@#\/%=~_|$?!:,.]*\jpg/
+//    return url.exec(string);    
+//  }
+ 
+//  /**
+//  *  Moves the provided imgNode into a container div, and adds a text div as a
+//  * peer.  Styles the container div and text div to place the text
+//  * on top of the image.
+//  * @param {HTMLElement} imgNode Which image node to write content on.
+//  * @param {string} imageUrl What image to put on the old image.
+//  */
+//  function addTextElementToImageNode(imgNode, textContent) {
+//   fetchAsync(textContent)
+//     .then(result => {
+//       console.log(result)
+
+//       const imageUrl = searchPageForImage(result);
+//       console.log(imageUrl);
+//       imgNode.src = imageUrl;
+//     })
+//  }
