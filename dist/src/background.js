@@ -46076,15 +46076,14 @@ function () {
                               fetch("https://www.bing.com/images/search?q=".concat(query)).then(function (response) {
                                 return response.text();
                               }).then(function (html) {
-                                console.log('data got');
-                                console.log(html);
                                 var urlRegex = /https:\/\/[-a-z0-9+&@#\/%=~_|$?!:,.]*\jpg/;
                                 var imageUrl = urlRegex.exec(html)[0];
-                                console.log(imageUrl);
+                                console.log(query, imageUrl);
                                 var message = {
                                   action: 'IMAGE_CLICK_PROCESSED',
                                   url: url,
-                                  imageUrl: imageUrl
+                                  imageUrl: imageUrl,
+                                  query: query
                                 };
                                 chrome.tabs.sendMessage(tabId, message);
                               });

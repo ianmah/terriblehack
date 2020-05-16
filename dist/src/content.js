@@ -37,8 +37,9 @@ function getImageElementsWithSrcUrl(srcUrl) {
  * @param {HTMLElement} imgNode Which image node to write content on.
  * @param {string} imageUrl What image to put on the old image.
  */
-function addTextElementToImageNode(imgNode, imageUrl) {
-  imgNode.src = imageUrl // TODO: Pass image URL once we have it
+function addTextElementToImageNode(imgNode, imageUrl, query) {
+  imgNode.src = imageUrl;
+  imgNode.alt = query;
 }
 
 // Add a listener to hear from the content.js page when the image is through
@@ -47,11 +48,10 @@ function addTextElementToImageNode(imgNode, imageUrl) {
 //
 // message: {action, url, predictions}
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log(message)
   const imgElements = getImageElementsWithSrcUrl(message.url);
   for (const imgNode of imgElements) {
     const imageUrl = message.imageUrl;
     console.log(imageUrl);
-    addTextElementToImageNode(imgNode, imageUrl);
+    addTextElementToImageNode(imgNode, imageUrl, message.query);
   }
 });

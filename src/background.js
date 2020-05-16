@@ -113,12 +113,10 @@ class ImageClassifier {
           fetch(`https://www.bing.com/images/search?q=${query}`)
             .then(response => response.text())
             .then(html => {
-              console.log('data got')
-              console.log(html)
               const urlRegex = /https:\/\/[-a-z0-9+&@#\/%=~_|$?!:,.]*\jpg/
               const imageUrl = urlRegex.exec(html)[0];
-              console.log(imageUrl)
-              const message = { action: 'IMAGE_CLICK_PROCESSED', url, imageUrl };
+              console.log(query, imageUrl)
+              const message = { action: 'IMAGE_CLICK_PROCESSED', url, imageUrl, query };
               chrome.tabs.sendMessage(tabId, message);
             })
         },
