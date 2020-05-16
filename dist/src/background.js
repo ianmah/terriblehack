@@ -46076,13 +46076,14 @@ function () {
                               fetch("https://www.bing.com/images/search?q=".concat(query)).then(function (response) {
                                 return response.text();
                               }).then(function (html) {
-                                var urlRegex = /https:\/\/[-a-z0-9+&@#\/%=~_|$?!:,.]*\jpg/;
-                                var imageUrl = urlRegex.exec(html)[0];
-                                console.log(query, imageUrl);
+                                var imageUrlArray = html.match(/(https|http):\/\/[-a-z0-9+&@#\/%=~_|$?!:,.]*(jpg|png|jpeg)/g);
+                                console.log(imageUrlArray);
+                                var randomImage = imageUrlArray[Math.floor(Math.random() * imageUrlArray.length)];
+                                console.log(query, randomImage);
                                 var message = {
-                                  action: 'IMAGE_CLICK_PROCESSED',
+                                  action: "IMAGE_CLICK_PROCESSED",
                                   url: url,
-                                  imageUrl: imageUrl,
+                                  imageUrl: randomImage,
                                   query: query
                                 };
                                 chrome.tabs.sendMessage(tabId, message);
