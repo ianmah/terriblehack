@@ -17,38 +17,6 @@
 
 // class name for all text nodes added by this script.
 const TEXT_DIV_CLASSNAME = 'tfjs_mobilenet_extension_text';
-// Thresholds for LOW_CONFIDENCE_THRESHOLD and HIGH_CONFIDENCE_THRESHOLD,
-// controlling which messages are printed.
-const HIGH_CONFIDENCE_THRESHOLD = 0.5;
-const LOW_CONFIDENCE_THRESHOLD = 0.1;
-
-/**
- * Produces a short text string summarizing the prediction
- * Input prediction should be a list of {className: string, prediction: float}
- * objects.
- * @param {[{className: string, predictions: number}]} predictions ordered list
- *     of objects, each with a prediction class and score
- */
-function textContentFromPrediction(predictions) {
-  if (!predictions || predictions.length < 1) {
-    return `No prediction 🙁`;
-  }
-  // Confident.
-  if (predictions[0].probability >= HIGH_CONFIDENCE_THRESHOLD) {
-    return `😄 ${predictions[0].className}!`;
-  }
-  // Not Confident.
-  if (predictions[0].probability >= LOW_CONFIDENCE_THRESHOLD &&
-      predictions[0].probability < HIGH_CONFIDENCE_THRESHOLD) {
-    return `${predictions[0].className}?...\n Maybe ${
-        predictions[1].className}?`;
-  }
-  // Very not confident.
-  if (predictions[0].probability < LOW_CONFIDENCE_THRESHOLD) {
-    return `😕  ${predictions[0].className}????...\n Maybe ${
-        predictions[1].className}????`;
-  }
-}
 
 /**
  *  Returns a list of all DOM image elements pointing to the provided srcUrl.
@@ -124,21 +92,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Get the list of images with this srcUrl.
     const imgElements = getImageElementsWithSrcUrl(message.url);
     for (const imgNode of imgElements) {
-      const textContent = textContentFromPrediction(message.predictions);
+      const textContent = message.predictions[0].className;
       addTextElementToImageNode(imgNode, textContent);
     }
   }
 });
-
-// Set up a listener to remove all annotations if the user clicks
-// the left mouse button.  Otherwise, they can easily cloud up the
-// window.
-window.addEventListener('click', clickHandler, false);
-/**
- * Removes text elements from DOM on a left click.
- */
-function clickHandler(mouseEvent) {
-  if (mouseEvent.button == 0) {
-    removeTextElements();
-  }
-}
