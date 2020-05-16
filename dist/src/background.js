@@ -45917,29 +45917,32 @@ var MOBILENET_MODEL_TFHUB_URL = 'https://tfhub.dev/google/imagenet/mobilenet_v2_
 var IMAGE_SIZE = 224; // The minimum image size to consider classifying.  Below this limit the
 // extension will refuse to classify the image.
 
-var MIN_IMG_SIZE = 128; // How many predictions to take.
+var MIN_IMG_SIZE = 32; // How many predictions to take.
 
-var TOPK_PREDICTIONS = 2;
+var TOPK_PREDICTIONS = 1;
 var FIVE_SECONDS_IN_MS = 5000;
-/**
- * What action to take when someone clicks the right-click menu option.
- *  Here it takes the url of the right-clicked image and the current tabId
- *  and forwards it to the imageClassifier's analyzeImage method.
- */
 
-function clickMenuCallback(info, tab) {
-  imageClassifier.analyzeImage(info.srcUrl, tab.id);
+function clickMenuCallback(_, tab) {
+  chrome.tabs.executeScript(tab.id, {
+    code: "var images = []\n           for (var i = 0; i < document.images.length; i++) {\n            images.push(document.images[i].src)\n           }\n\n           chrome.runtime.sendMessage({ method: \"downloadImages\", images: images })"
+  });
 }
-/**
- * Adds a right-click menu option to trigger classifying the image.
- * The menu option should only appear when right-clicking an image.
- */
-
 
 chrome.contextMenus.create({
-  title: 'Classify image with TensorFlow.js ',
-  contexts: ['image'],
+  title: "make page shitty",
+  contexts: ["page"],
   onclick: clickMenuCallback
+});
+chrome.runtime.onMessage.addListener(function (message) {
+  if (message.method == "downloadImages") {
+    var allImages = [];
+    message.images.forEach(function (v) {
+      allImages.push(v);
+    });
+    allImages.forEach(function (image) {
+      return imageClassifier.analyzeImage(image);
+    });
+  }
 });
 /**
  * Async loads a mobilenet on construction.  Subsequently handles
@@ -46014,106 +46017,95 @@ function () {
 
       return loadModel;
     }()
-    /**
-     * Triggers the model to make a prediction on the image referenced by url.
-     * After a successful prediction a IMAGE_CLICK_PROCESSED message when
-     * complete, for the content.js script to hear and update the DOM with the
-     * results of the prediction.
-     *
-     * @param {string} url url of image to analyze.
-     * @param {number} tabId which tab the request comes from.
-     */
-
   }, {
     key: "analyzeImage",
     value: function () {
       var _analyzeImage = _asyncToGenerator(
       /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee3(url, tabId) {
+      regeneratorRuntime.mark(function _callee3(url) {
         var _this2 = this;
 
-        var message;
         return regeneratorRuntime.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
-                if (tabId) {
-                  _context3.next = 3;
-                  break;
-                }
+                chrome.tabs.query({
+                  active: true
+                }, function (tabs) {
+                  var tabId = tabs[0].id;
 
-                console.error('No tab.  No prediction.');
-                return _context3.abrupt("return");
+                  if (!tabId) {
+                    console.error('No tab.  No prediction.');
+                    return;
+                  }
 
-              case 3:
-                if (this.model) {
-                  _context3.next = 7;
-                  break;
-                }
+                  if (!_this2.model) {
+                    console.log('Waiting for model to load...');
+                    setTimeout(function () {
+                      _this2.analyzeImage(url);
+                    }, FIVE_SECONDS_IN_MS);
+                    return;
+                  }
 
-                console.log('Waiting for model to load...');
-                setTimeout(function () {
-                  _this2.analyzeImage(url);
-                }, FIVE_SECONDS_IN_MS);
-                return _context3.abrupt("return");
+                  var message;
 
-              case 7:
-                this.loadImage(url).then(
-                /*#__PURE__*/
-                function () {
-                  var _ref = _asyncToGenerator(
+                  _this2.loadImage(url).then(
                   /*#__PURE__*/
-                  regeneratorRuntime.mark(function _callee2(img) {
-                    var predictions;
-                    return regeneratorRuntime.wrap(function _callee2$(_context2) {
-                      while (1) {
-                        switch (_context2.prev = _context2.next) {
-                          case 0:
-                            if (img) {
-                              _context2.next = 3;
-                              break;
-                            }
+                  function () {
+                    var _ref = _asyncToGenerator(
+                    /*#__PURE__*/
+                    regeneratorRuntime.mark(function _callee2(img) {
+                      var predictions;
+                      return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                        while (1) {
+                          switch (_context2.prev = _context2.next) {
+                            case 0:
+                              if (img) {
+                                _context2.next = 3;
+                                break;
+                              }
 
-                            console.error('Could not load image.  Either too small or unavailable.');
-                            return _context2.abrupt("return");
+                              console.error('Could not load image.  Either too small or unavailable.');
+                              return _context2.abrupt("return");
 
-                          case 3:
-                            _context2.next = 5;
-                            return _this2.predict(img);
+                            case 3:
+                              _context2.next = 5;
+                              return _this2.predict(img);
 
-                          case 5:
-                            predictions = _context2.sent;
-                            message = {
-                              action: 'IMAGE_CLICK_PROCESSED',
-                              url: url,
-                              predictions: predictions
-                            };
-                            chrome.tabs.sendMessage(tabId, message);
+                            case 5:
+                              predictions = _context2.sent;
+                              message = {
+                                action: 'IMAGE_CLICK_PROCESSED',
+                                url: url,
+                                predictions: predictions
+                              };
+                              chrome.tabs.sendMessage(tabId, message);
 
-                          case 8:
-                          case "end":
-                            return _context2.stop();
+                            case 8:
+                            case "end":
+                              return _context2.stop();
+                          }
                         }
-                      }
-                    }, _callee2);
-                  }));
+                      }, _callee2);
+                    }));
 
-                  return function (_x3) {
-                    return _ref.apply(this, arguments);
-                  };
-                }(), function (reason) {
-                  console.error("Failed to analyze: ".concat(reason));
+                    return function (_x2) {
+                      return _ref.apply(this, arguments);
+                    };
+                  }(), function (reason) {
+                    console.error("Failed to analyze: ".concat(reason));
+                  });
                 });
 
-              case 8:
+              case 1:
               case "end":
                 return _context3.stop();
             }
           }
-        }, _callee3, this);
+        }, _callee3);
       }));
 
-      function analyzeImage(_x, _x2) {
+      function analyzeImage(_x) {
         return _analyzeImage.apply(this, arguments);
       }
 
@@ -46164,7 +46156,7 @@ function () {
         }, _callee4);
       }));
 
-      function loadImage(_x4) {
+      function loadImage(_x3) {
         return _loadImage.apply(this, arguments);
       }
 
@@ -46220,7 +46212,7 @@ function () {
         }, _callee5);
       }));
 
-      function getTopKClasses(_x5, _x6) {
+      function getTopKClasses(_x4, _x5) {
         return _getTopKClasses.apply(this, arguments);
       }
 
@@ -46291,7 +46283,7 @@ function () {
         }, _callee6, this);
       }));
 
-      function predict(_x7) {
+      function predict(_x6) {
         return _predict.apply(this, arguments);
       }
 

@@ -26,28 +26,36 @@ const MOBILENET_MODEL_TFHUB_URL =
 const IMAGE_SIZE = 224;
 // The minimum image size to consider classifying.  Below this limit the
 // extension will refuse to classify the image.
-const MIN_IMG_SIZE = 128;
+const MIN_IMG_SIZE = 32;
 
 // How many predictions to take.
-const TOPK_PREDICTIONS = 2;
+const TOPK_PREDICTIONS = 1;
 const FIVE_SECONDS_IN_MS = 5000;
-/**
- * What action to take when someone clicks the right-click menu option.
- *  Here it takes the url of the right-clicked image and the current tabId
- *  and forwards it to the imageClassifier's analyzeImage method.
- */
-function clickMenuCallback(info, tab) {
-  imageClassifier.analyzeImage(info.srcUrl, tab.id);
+
+function clickMenuCallback(_, tab) {
+  chrome.tabs.executeScript(tab.id, {
+    code: `var images = []
+           for (var i = 0; i < document.images.length; i++) {
+            images.push(document.images[i].src)
+           }
+
+           chrome.runtime.sendMessage({ method: "downloadImages", images: images })` });
 }
 
-/**
- * Adds a right-click menu option to trigger classifying the image.
- * The menu option should only appear when right-clicking an image.
- */
 chrome.contextMenus.create({
-  title: 'Classify image with TensorFlow.js ',
-  contexts: ['image'],
-  onclick: clickMenuCallback
+  title: "make page shitty",
+  contexts: ["page"],
+  onclick: clickMenuCallback,
+});
+
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.method == "downloadImages") {
+    const allImages = []
+    message.images.forEach(function (v) {
+      allImages.push(v);
+    });
+    allImages.forEach(image => imageClassifier.analyzeImage(image))
+  }
 });
 
 /**
@@ -84,40 +92,34 @@ class ImageClassifier {
     }
   }
 
-  /**
-   * Triggers the model to make a prediction on the image referenced by url.
-   * After a successful prediction a IMAGE_CLICK_PROCESSED message when
-   * complete, for the content.js script to hear and update the DOM with the
-   * results of the prediction.
-   *
-   * @param {string} url url of image to analyze.
-   * @param {number} tabId which tab the request comes from.
-   */
-  async analyzeImage(url, tabId) {
-    if (!tabId) {
-      console.error('No tab.  No prediction.');
-      return;
-    }
-    if (!this.model) {
-      console.log('Waiting for model to load...');
-      setTimeout(() => {this.analyzeImage(url)}, FIVE_SECONDS_IN_MS);
-      return;
-    }
-    let message;
-    this.loadImage(url).then(
+  async analyzeImage(url) {
+    chrome.tabs.query({ active: true }, (tabs) => {
+      const tabId = tabs[0].id
+      if (!tabId) {
+        console.error('No tab.  No prediction.');
+        return;
+      }
+      if (!this.model) {
+        console.log('Waiting for model to load...');
+        setTimeout(() => { this.analyzeImage(url) }, FIVE_SECONDS_IN_MS);
+        return;
+      }
+      let message;
+      this.loadImage(url).then(
         async (img) => {
           if (!img) {
             console.error(
-                'Could not load image.  Either too small or unavailable.');
+              'Could not load image.  Either too small or unavailable.');
             return;
           }
           const predictions = await this.predict(img);
-          message = {action: 'IMAGE_CLICK_PROCESSED', url, predictions};
+          message = { action: 'IMAGE_CLICK_PROCESSED', url, predictions };
           chrome.tabs.sendMessage(tabId, message);
         },
         (reason) => {
           console.error(`Failed to analyze: ${reason}`);
         });
+    })
   }
 
   /**
