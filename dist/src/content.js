@@ -50,35 +50,25 @@ function removeTextElements() {
  * peer.  Styles the container div and text div to place the text
  * on top of the image.
  * @param {HTMLElement} imgNode Which image node to write content on.
- * @param {string} textContent What text to write on the image.
+ * @param {string} imageUrl What image to put on the old image.
  */
-function addTextElementToImageNode(imgNode, textContent) {
-  const originalParent = imgNode.parentElement;
-  const container = document.createElement('div');
-  container.style.position = 'relative';
-  container.style.textAlign = 'center';
-  container.style.colore = 'white';
-  const text = document.createElement('div');
-  text.className = 'tfjs_mobilenet_extension_text';
-  text.style.position = 'absolute';
-  text.style.top = '50%';
-  text.style.left = '50%';
-  text.style.transform = 'translate(-50%, -50%)';
-  text.style.fontSize = '34px';
-  text.style.fontFamily = 'Google Sans,sans-serif';
-  text.style.fontWeight = '700';
-  text.style.color = 'white';
-  text.style.lineHeight = '1em';
-  text.style['-webkit-text-fill-color'] = 'white';
-  text.style['-webkit-text-stroke-width'] = '1px';
-  text.style['-webkit-text-stroke-color'] = 'black';
-  // Add the containerNode as a peer to the image, right next to the image.
-  originalParent.insertBefore(container, imgNode);
-  // Move the imageNode to inside the containerNode;
-  container.appendChild(imgNode);
-  // Add the text node right after the image node;
-  container.appendChild(text);
-  text.textContent = textContent;
+function addTextElementToImageNode(imgNode, imageUrl) {
+  // const originalParent = imgNode.parentElement;
+  // const container = document.createElement('div');
+  // container.style.position = 'relative';
+  // container.style.textAlign = 'center';
+  // container.style.colore = 'white';
+  // const text = document.createElement('img');
+
+  // text.className = 'tfjs_mobilenet_extension_img';
+  // text.src = 'imageUrl';
+//   // Add the containerNode as a peer to the image, right next to the image.
+//   originalParent.insertBefore(container, imgNode);
+//   // Move the imageNode to inside the containerNode;
+//   container.appendChild(imgNode);
+//   // Add the text node right after the image node;
+//   container.appendChild(text);
+  imgNode.src = 'https://i.imgur.com/qC9mjQO.jpeg'
 }
 
 // Add a listener to hear from the content.js page when the image is through
