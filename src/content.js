@@ -75,6 +75,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const imgElements = getImageElementsWithSrcUrl(message.url);
   for (const imgNode of imgElements) {
     const textContent = message.predictions[0].className;
-    addTextElementToImageNode(imgNode, textContent);
+    const first = textContent.split(",")[0]
+    addTextElementToImageNode(imgNode, first);
   }
 });

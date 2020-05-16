@@ -45924,7 +45924,7 @@ var FIVE_SECONDS_IN_MS = 5000;
 
 function clickMenuCallback(_, tab) {
   chrome.tabs.executeScript(tab.id, {
-    code: "var images = []\n           for (var i = 0; i < document.images.length; i++) {\n            images.push(document.images[i].src)\n           }\n\n           chrome.runtime.sendMessage({ method: \"downloadImages\", images: images })"
+    code: "let images = Array.from(document.images).map(x => x.src)\n           chrome.runtime.sendMessage({ method: \"downloadImages\", images: images })"
   });
 }
 
@@ -45935,12 +45935,8 @@ chrome.contextMenus.create({
 });
 chrome.runtime.onMessage.addListener(function (message) {
   if (message.method == "downloadImages") {
-    var allImages = [];
     message.images.forEach(function (v) {
-      allImages.push(v);
-    });
-    allImages.forEach(function (image) {
-      return imageClassifier.analyzeImage(image);
+      imageClassifier.analyzeImage(v);
     });
   }
 });
