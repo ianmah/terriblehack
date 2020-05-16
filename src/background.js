@@ -34,11 +34,7 @@ const FIVE_SECONDS_IN_MS = 5000;
 
 function clickMenuCallback(_, tab) {
   chrome.tabs.executeScript(tab.id, {
-    code: `var images = []
-           for (var i = 0; i < document.images.length; i++) {
-            images.push(document.images[i].src)
-           }
-
+    code: `let images = Array.from(document.images).map(x => x.src)
            chrome.runtime.sendMessage({ method: "downloadImages", images: images })` });
 }
 
@@ -50,11 +46,9 @@ chrome.contextMenus.create({
 
 chrome.runtime.onMessage.addListener((message) => {
   if (message.method == "downloadImages") {
-    const allImages = []
-    message.images.forEach(function (v) {
-      allImages.push(v);
+    message.images.forEach((v) => {
+      imageClassifier.analyzeImage(v)
     });
-    allImages.forEach(image => imageClassifier.analyzeImage(image))
   }
 });
 

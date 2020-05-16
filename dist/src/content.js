@@ -75,6 +75,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const imgElements = getImageElementsWithSrcUrl(message.url);
   for (const imgNode of imgElements) {
     const textContent = message.predictions[0].className;
+<<<<<<< HEAD
     addTextElementToImageNode(imgNode, textContent);
 =======
   if (message && message.action === 'IMAGE_CLICK_PROCESSED' && message.url &&
@@ -100,5 +101,9 @@ function clickHandler(mouseEvent) {
   if (mouseEvent.button == 0) {
     removeTextElements();
 >>>>>>> 05aa2fc896bea41b8c9298a6819d63574d263939
+=======
+    const first = textContent.split(",")[0]
+    addTextElementToImageNode(imgNode, first);
+>>>>>>> auto-classify
   }
 });
