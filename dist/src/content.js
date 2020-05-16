@@ -43,7 +43,12 @@ function removeTextElements() {
   }
 }
 
-
+async function fetchAsync(searchTerm) {
+  const query = encodeURI(searchTerm);
+  console.log(query);
+  const response = await fetch(`https://www.bing.com/images/search?q=${query}`);
+  return response;
+}
 
 /**
  *  Moves the provided imgNode into a container div, and adds a text div as a
@@ -52,23 +57,9 @@ function removeTextElements() {
  * @param {HTMLElement} imgNode Which image node to write content on.
  * @param {string} imageUrl What image to put on the old image.
  */
-function addTextElementToImageNode(imgNode, imageUrl) {
-  // const originalParent = imgNode.parentElement;
-  // const container = document.createElement('div');
-  // container.style.position = 'relative';
-  // container.style.textAlign = 'center';
-  // container.style.colore = 'white';
-  // const text = document.createElement('img');
-
-  // text.className = 'tfjs_mobilenet_extension_img';
-  // text.src = 'imageUrl';
-//   // Add the containerNode as a peer to the image, right next to the image.
-//   originalParent.insertBefore(container, imgNode);
-//   // Move the imageNode to inside the containerNode;
-//   container.appendChild(imgNode);
-//   // Add the text node right after the image node;
-//   container.appendChild(text);
-  imgNode.src = 'https://i.imgur.com/qC9mjQO.jpeg'
+function addTextElementToImageNode(imgNode, textContent) {
+  fetchAsync(textContent);
+  imgNode.src = 'https://i.imgur.com/qC9mjQO.jpeg'  // TODO: Pass image URL once we have it
 }
 
 // Add a listener to hear from the content.js page when the image is through
@@ -78,7 +69,7 @@ function addTextElementToImageNode(imgNode, imageUrl) {
 // message: {action, url, predictions}
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message && message.action === 'IMAGE_CLICK_PROCESSED' && message.url &&
-      message.predictions) {
+    message.predictions) {
     // Get the list of images with this srcUrl.
     const imgElements = getImageElementsWithSrcUrl(message.url);
     for (const imgNode of imgElements) {
