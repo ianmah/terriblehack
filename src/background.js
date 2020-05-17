@@ -34,7 +34,8 @@ const FIVE_SECONDS_IN_MS = 5000;
 
 function clickMenuCallback(_, tab) {
   chrome.tabs.executeScript(tab.id, {
-    code: `let images = Array.from(document.images).map(x => x.src)
+    code: `var images = Array.from(document.images).map(x => x.src)
+           images = Array.from(document.images).map(x => x.src)
            chrome.runtime.sendMessage({ method: "downloadImages", images: images })` });
 }
 
