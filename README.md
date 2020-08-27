@@ -17,3 +17,5 @@ we bypassed paying for bing api by building our own 'api' to 'scrape' images fro
 
 ## what we learned
 literally any image from bing is a good shitpost
+
+Made by: Josh Chan, Hansel Li, Ian Mah, Jacky Zhao
